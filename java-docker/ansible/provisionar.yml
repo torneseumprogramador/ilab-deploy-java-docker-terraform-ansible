@@ -1,0 +1,70 @@
+- hosts:
+  - java1
+  tasks:
+    - name: "Renomar maquina"
+      shell: hostname "java1" && echo "java1" > /etc/hostname
+      become: yes # roda como sudo
+
+- hosts:
+  - java2
+  tasks:
+    - name: "Renomar maquina"
+      shell: hostname "java2" && echo "java2" > /etc/hostname
+      become: yes # roda como sudo
+    
+- hosts:
+  - java3
+  tasks:
+    - name: "Renomar maquina"
+      shell: hostname "java3" && echo "java3" > /etc/hostname
+      become: yes # roda como sudo
+
+- hosts:
+  - java1
+  - java2
+  - java3
+  become: yes
+  tasks:
+    - name: "Roda: sudo apt update"
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: "Instala pacotes"
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gpg-agent
+        - software-properties-common
+    
+    - name: add docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker apt repo
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: install docker
+      apt:
+        update_cache: yes
+        state: latest
+        name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: "baixar imagem docker"
+      shell: docker pull didox/ilab-java-cpf
+
+    - name: "Criando container"
+      ignore_errors: yes
+      shell: docker run -d -p 8080:8080 --name ilab-java-cpf didox/ilab-java-cpf
+
+# ansible-playbook -i hosts provisionar.yml -u ubuntu --private-key ../../ssh/id_rsa

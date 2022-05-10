@@ -1,0 +1,10 @@
+upstream loadbalancer {
+  server 172.31.24.233:8080;
+  server 172.31.21.5:8080;
+  server 172.31.28.157:8080;
+}
+server {
+  location / {
+    proxy_pass http://loadbalancer;
+  }
+}

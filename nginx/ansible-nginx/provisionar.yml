@@ -1,0 +1,32 @@
+- hosts:
+  - nginx
+  become: yes # roda como sudo
+  handlers:
+    - name: "restart nginx"
+      service:
+        name: nginx
+        state: restarted
+  tasks:
+    - name: "Renomar maquina"
+      shell: hostname "nginx" && echo "nginx" > /etc/hostname
+
+    - name: "Roda: sudo apt update"
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: "Instala pacotes"
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - nginx
+    
+    - name: "Trocando nginx para VPS"
+      copy:
+        src: "nginx/default"
+        dest: "/etc/nginx/sites-available/default"
+      notify:
+        - "restart nginx"
+
+# ansible-playbook -i hosts provisionar.yml -u ubuntu --private-key ../../ssh/id_rsa
